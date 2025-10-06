@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica Interactiva de Vocabulario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-option {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .quiz-option.correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+        }
+        .quiz-option.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+        }
+        .quiz-option:not(.correct):not(.incorrect):hover {
+            background-color: #eef2ff;
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <header id="main-header" class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-indigo-700">Práctica Interactiva de Francés</h1>
+            <p class="text-lg text-gray-600 mt-2">Elige un tema para comenzar la prueba.</p>
+        </header>
+
+        <!-- Menú de Temas -->
+        <main id="menu-container">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="startQuiz('vestimenta')" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-left">
+                    <h2 class="text-xl font-bold text-indigo-600">La Vestimenta</h2>
+                    <p class="text-gray-500 mt-1">Practica el vocabulario de la ropa.</p>
+                </button>
+                <button onclick="startQuiz('profesiones')" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-left">
+                    <h2 class="text-xl font-bold text-teal-600">Las Profesiones</h2>
+                    <p class="text-gray-500 mt-1">Aprende el femenino y masculino.</p>
+                </button>
+                <button onclick="startQuiz('colores')" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-left">
+                    <h2 class="text-xl font-bold text-amber-600">Los Colores</h2>
+                    <p class="text-gray-500 mt-1">Recuerda la concordancia de género.</p>
+                </button>
+                <button onclick="startQuiz('conjugacion')" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-left">
+                    <h2 class="text-xl font-bold text-rose-600">La Conjugación</h2>
+                    <p class="text-gray-500 mt-1">Conjuga los verbos pronominales.</p>
+                </button>
+            </div>
+        </main>
+
+        <!-- Contenedor del Quiz -->
+        <div id="quiz-container" class="hidden">
+            <h2 id="quiz-title" class="text-2xl font-bold text-center mb-6"></h2>
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <p id="question-text" class="text-xl font-semibold mb-6 text-center"></p>
+                <div id="options-container" class="space-y-4"></div>
+            </div>
+            <div id="progress-bar" class="w-full bg-gray-200 rounded-full h-2.5 mt-6">
+                <div id="progress-bar-inner" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Contenedor de Resultados -->
+        <div id="results-container" class="hidden">
+            <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                <h2 class="text-2xl font-bold mb-4">¡Prueba Completada!</h2>
+                <p class="text-4xl font-bold text-indigo-600 mb-6" id="score-text"></p>
+                <div id="incorrect-summary" class="text-left">
+                    <h3 class="font-bold text-lg mb-2">Palabras para repasar:</h3>
+                    <ul id="incorrect-list" class="list-disc list-inside space-y-2 text-gray-700"></ul>
+                </div>
+                <button onclick="restartMenu()" class="mt-8 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors">Volver al Menú</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {
+            vestimenta: {
+                title: "La Vestimenta",
+                questions: [
+                    { q: "¿Cómo se dice 'camisa'?", o: ["une chemise", "une jupe", "un pantalon"], a: "une chemise" },
+                    { q: "¿Cómo se dice 'zapatillas'?", o: ["des chaussures", "des baskets", "des chaussettes"], a: "des baskets" },
+                    { q: "¿Cómo se dice 'falda'?", o: ["une robe", "une jupe", "une veste"], a: "une jupe" },
+                    { q: "¿Qué es 'un blouson'?", o: ["Un blusón", "Una chaqueta", "Unos calcetines"], a: "Una chaqueta" }
+                ]
+            },
+            profesiones: {
+                title: "Las Profesiones",
+                questions: [
+                    { q: "El masculino de 'une actrice' es...", o: ["un acteur", "un actrice", "un action"], a: "un acteur" },
+                    { q: "El femenino de 'un sportif' es...", o: ["une sportife", "une sportive", "la sportif"], a: "une sportive" },
+                    { q: "El femenino de 'un chanteur' es...", o: ["une chanteuse", "une chantrice", "la chanteur"], a: "une chanteuse" },
+                    { q: "El masculino de 'une professeure' es...", o: ["le professeur", "un professeur", "un professeure"], a: "un professeur" }
+                ]
+            },
+            colores: {
+                title: "Los Colores",
+                questions: [
+                    { q: "El femenino de 'blanc' es...", o: ["blanche", "blanca", "blanque"], a: "blanche" },
+                    { q: "Elige el color correcto: 'une voiture ______' (rojo)", o: ["rouge", "rouges", "rougeo"], a: "rouge" },
+                    { q: "Elige el color correcto: 'des chaussettes ______' (violeta, plural)", o: ["violet", "violettes", "violets"], a: "violettes" },
+                    { q: "El femenino de 'nouveau' es...", o: ["nouveau", "nouvele", "nouvelle"], a: "nouvelle" }
+                ]
+            },
+            conjugacion: {
+                title: "La Conjugación",
+                questions: [
+                    { q: "Completa: 'Je ______ (se lever)'", o: ["me lève", "te lèves", "se lève"], a: "me lève" },
+                    { q: "Completa: 'Nous ______ (s'habiller)'", o: ["habillons", "nous habillons", "nous nous habillons"], a: "nous nous habillons" },
+                    { q: "Completa: 'Tu ______ (se coucher)'", o: ["te couches", "se couche", "me couches"], a: "te couches" },
+                    { q: "Completa: 'Elles ______ (se déguiser)'", o: ["se déguise", "se déguisent", "déguisent"], a: "se déguisent" }
+                ]
+            }
+        };
+
+        let currentQuiz = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let incorrectAnswers = [];
+
+        function startQuiz(category) {
+            currentQuiz = category;
+            currentQuestionIndex = 0;
+            score = 0;
+            incorrectAnswers = [];
+
+            document.getElementById('menu-container').classList.add('hidden');
+            document.getElementById('main-header').classList.add('hidden');
+            
+            const quizContainer = document.getElementById('quiz-container');
+            quizContainer.classList.remove('hidden');
+            document.getElementById('quiz-title').textContent = quizData[currentQuiz].title;
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const questionData = quizData[currentQuiz].questions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = questionData.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            questionData.o.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = "w-full p-4 border-2 border-gray-300 rounded-lg text-lg quiz-option";
+                button.onclick = () => selectAnswer(option, questionData.a, button);
+                optionsContainer.appendChild(button);
+            });
+            
+            updateProgressBar();
+        }
+
+        function selectAnswer(selected, correct, button) {
+            document.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+
+            if (selected === correct) {
+                score++;
+                button.classList.add('correct');
+            } else {
+                button.classList.add('incorrect');
+                incorrectAnswers.push({
+                    question: quizData[currentQuiz].questions[currentQuestionIndex].q,
+                    correctAnswer: correct
+                });
+                 // Resaltar la correcta
+                document.querySelectorAll('.quiz-option').forEach(btn => {
+                    if (btn.textContent === correct) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData[currentQuiz].questions.length) {
+                    displayQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1500);
+        }
+        
+        function updateProgressBar() {
+            const totalQuestions = quizData[currentQuiz].questions.length;
+            const progress = (currentQuestionIndex / totalQuestions) * 100;
+            document.getElementById('progress-bar-inner').style.width = `${progress}%`;
+        }
+
+        function showResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.classList.remove('hidden');
+
+            const totalQuestions = quizData[currentQuiz].questions.length;
+            document.getElementById('score-text').textContent = `${score} / ${totalQuestions}`;
+
+            const incorrectList = document.getElementById('incorrect-list');
+            incorrectList.innerHTML = '';
+            
+            if (incorrectAnswers.length === 0) {
+                 document.getElementById('incorrect-summary').innerHTML = '<h3 class="font-bold text-lg text-green-600">¡Felicidades! Todas las respuestas son correctas.</h3>';
+            } else {
+                 document.getElementById('incorrect-summary').querySelector('h3').style.display = 'block';
+                incorrectAnswers.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>Pregunta:</strong> "${item.question}" <br> <strong>Respuesta correcta:</strong> ${item.correctAnswer}`;
+                    incorrectList.appendChild(li);
+                });
+            }
+        }
+
+        function restartMenu() {
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('menu-container').classList.remove('hidden');
+            document.getElementById('main-header').classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
